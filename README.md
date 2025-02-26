@@ -25,12 +25,19 @@ MapEval is a comprehensive framework for evaluating point cloud maps in SLAM sys
 
 These complementary aspects require different evaluation approaches, as global drift may exist despite excellent local reconstruction, or conversely, good global alignment might mask local inconsistencies. Our framework provides a unified solution through both traditional metrics and novel evaluation methods based on optimal transport theory.
 
+## News
+
+- **2025/02/25**: Accept to RAL!
+- **2025/02/12**: Codes released! 
+- **2025/02/05**: Resubmit.
+- **2024/12/19**: Submitted to **IEEE RAL**! 
+
 ## Key Features
 
 **Traditional Metrics Implementation**:
 
 - **Accuracy** (AC): Point-level geometric error assessment
-- **Completeness** (COM): Map coverage evaluation
+- **Completeness** (COM): Map coverage evaluation.
 - **Chamfer Distance** (CD): Bidirectional point cloud difference
 - **Mean Map Entropy** (MME): Information-theoretic local consistency metric
 
@@ -44,17 +51,13 @@ These complementary aspects require different evaluation approaches, as global d
 ![image-20241129091604653](./README/image-20241129091604653.png)
 </div>
 
-## News
-
-- **2024/11/26**: Submitted to a Journal. When the paper accepted, the new version of codes will release! 
-
 ## Results
 
 ### Simulated experiments
 
 | Noise Sensitivity                                            | Outlier Robustness                                           |
 | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| ![image-20241129091823199](./README/image-20241129091823199.png) | ![image-20241129091845196](./README/image-20241129091845196.png) |
+| ![image-20241129123446075](./README/image-20241129123446075.png) | ![image-20241129091845196](./README/image-20241129091845196.png) |
 
 ![image-20241127083707943](./README/image-20241127083707943.png)
 
@@ -66,7 +69,6 @@ These complementary aspects require different evaluation approaches, as global d
 
 | ![image-20241129092052634](./README/image-20241129092052634.png) |
 | ------------------------------------------------------------ |
-| ![image-20241129092017261](./README/image-20241129092017261.png) |
 
 ## Computational Efficiency
 
@@ -80,12 +82,8 @@ These complementary aspects require different evaluation approaches, as global d
 
 ## Datasets
 
-### [MS-dataset](https://github.com/JokerJohn/MS-Dataset)
-
-### [FusionPortable (FP) and FusionPortableV2 dataset](https://fusionportable.github.io/dataset/fusionportable_v2/)
-### [Newer College (NC)](https://ori-drs.github.io/newer-college-dataset/)
-
-### [ GEODE dataset (GE)](https://github.com/PengYu-Team/GEODE_dataset)
+| [MS-dataset](https://github.com/JokerJohn/MS-Dataset) | [FusionPortable (FP) and FusionPortableV2 dataset](https://fusionportable.github.io/dataset/fusionportable_v2/) | [Newer College (NC)](https://ori-drs.github.io/newer-college-dataset/) | [ GEODE dataset (GE)](https://github.com/PengYu-Team/GEODE_dataset) |
+| ----------------------------------------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 
 <div align="center">
 
@@ -97,15 +95,14 @@ These complementary aspects require different evaluation approaches, as global d
 ### Dependencies
 
 - *[Open3d ( >= 0.11)](https://github.com/isl-org/Open3D)* 
-
 - Eigen3
+- yaml-cpp
 
 ### Test Data(password: 1)
 
-| sequence                                                     | Test PCD                                                     | GT PCD                                                       |
-| ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
-| MCR_slow                                                     | [map.pcd](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/ES9eSANEr-9NvkFqMzMFsecBo5r3hBpBnj0c6BMPgsfXnQ?e=aijdPf) | [map_gt.pcd](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/ESfn5EEsiPlCiJcydVc_HqgBDGqy65MHoyu63XE-iKbFBQ?e=dTDon4) |
-| [FusionPortable Dataset](https://ram-lab.com/file/site/fusionportable/dataset/fusionportable/#download) |                                                              |                                                              |
+| sequence | Test PCD                                                     | GT PCD                                                       |
+| -------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| MCR_slow | [map.pcd](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/ES9eSANEr-9NvkFqMzMFsecBo5r3hBpBnj0c6BMPgsfXnQ?e=aijdPf) | [map_gt.pcd](https://hkustconnect-my.sharepoint.com/:u:/g/personal/xhubd_connect_ust_hk/ESfn5EEsiPlCiJcydVc_HqgBDGqy65MHoyu63XE-iKbFBQ?e=dTDon4) |
 
 ### Usage
 
@@ -122,40 +119,36 @@ make install
 
 ```bash
 git clone https://github.com/JokerJohn/Cloud_Map_Evaluation.git
-cd Cloud_Map_Evaluation/cloud_map_eval && mkdir build
+cd Cloud_Map_Evaluation/map_eval && mkdir build
 cmake ..
 make
-./cloud_map_eval
+./map_eval
 ```
 
-3. set some params
+3. set and read the instruction of some params in [config.yaml](map_eval/config/config.yaml).
 
-```c++
-double icp_max_distance = 0.5;             // max correspondence pairs distance for  knn search in icp
-int method = 2;                            // 0:point-to-point icp 1:point-to-plane icp 
-Vector5d accuacy_level = Vector5d::Zero();   // set evaluatation accucay level, eg. 20cm/10cm/5cm/2cm/1cm
-accuacy_level << 0.2, 0.1, 0.05, 0.02, 0.01;  //  do not recommand to change this
+```yaml
+# accuracy_level, vector5d, we mainly use the result of the first element
+# if inlier is very small, we can try to larger the value, e.g. for outdoors, [0.5, 0.3, 0.2, 0.1, 0.05]
+accuracy_level: [0.2, 0.1, 0.08, 0.05, 0.01]
 
-Eigen::Matrix4d initial_matrix = Eigen::Matrix4d::Identity();   // initial pose for your map
-
-// the path dir must end with '/'
-std::string est_path, gt_path, results_path, sequence_name;
-std::string est_folder = "/home/xchu/my_git/Cloud_Map_Evaluation/cloud_map_evaluation/dataset/";
-sequence_name = "MCR_slow";
-est_path = est_folder + sequence_name + "/";
-gt_path = est_folder + sequence_name + "/" + sequence_name + "_gt.pcd";
-results_path = est_folder + sequence_name + "/";
-
-// in  you want to evaluate mme
-bool evaluate_mme = true;
-bool evaluate_gt_mme = true;  // for gt map, we do not use it
+# initial_matrix, vector16d, the initial matrix of the registration
+# make sure the format is correct, or you will got the error log: YAML::BadSubscript' what():  operator[] call on a scalar
+initial_matrix:
+  - [1.0, 0.0, 0.0, 0.0]
+  - [0.0, 1.0, 0.0, 0.0]
+  - [0.0, 0.0, 1.0, 0.0]
+  - [0.0, 0.0, 0.0, 1.0]
+  
+# vmd voxel size, outdoor: 2.0-4.0; indoor: 2.0-3.0
+vmd_voxel_size: 3.0
 ```
 
 4. get the final results
 
 we have a point cloud map generated by a pose-slam system, and we have a ground truth point cloud map. Then we caculate related metrics.
 
-![image-20240127212931498](./README/image-20240127212931498.png)
+![image-20250214100110872](./README/image-20250214100110872.png)
 
 We can also get a rendered raw distance-error map(10cm) and inlier distance-error map(2cm) in this process, the color R->G->B represent for the distance error at a level of 0-10cm.
 
@@ -171,30 +164,18 @@ we can also get a simpe mesh reconstructed from point cloud map.
 
 5. we got the result flies.
 
-![image-20240127213557574](./README/image-20240127213557574.png)
+![image-20250212202446474](./README/image-20250212202446474.png)
 
-### Important Parameters
+6. if you want to get the visulization of voxel errors, use the  [error-visualization.py](map_eval/scripts/error-visualization.py) 
 
-```c++
-bool eva_mesh = false;  // if we construct a simple meth.
-bool eva_mme = true; // if we evaluate mme without gt map.
+   ```python
+   pip install numpy matplotlib scipy
+   
+   python3 error-visualization.py
+   ```
 
-// Downsampling for efficiency
-map_3d_ = map_3d_->VoxelDownSample(0.03);
-gt_3d_ = gt_3d_->VoxelDownSample(0.03);
-
-double radius = 0.5;  // we choose a nearest distance of 0.5m to caculate the point cov for mme caculation.
-mme_est = ComputeMeanMapEntropy(map_3d_, est_entropies, radius);
-mme_gt = ComputeMeanMapEntropy(gt_3d_, gt_entropies, radius);
-
-
-// rendering distance map
-// when render the inlier distance map and raw distance map, we choose a thresohold of trunc_dist_[0] (20cm).
-map_3d_render_inlier = renderDistanceOnPointCloud(corresponding_cloud_gt, corresponding_cloud_est, param_.trunc_dist_[0]);
-map_3d_render_raw = enderDistanceOnPointCloud(gt_3d_, map_3d_, param_.trunc_dist_[0]);
-```
-
-
+   | ![image-20250212202920950](./README/image-20250212202920950.png) | ![image-20250212202933255](./README/image-20250212202933255.png) | ![image-20250212203009074](./README/image-20250212203009074.png) | ![image-20250212203025149](./README/image-20250212203025149.png) |
+   | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------------ |
 
 ## Issues
 
@@ -219,10 +200,10 @@ The primary function of the r**aw rendered map** (left) is to color-code the err
 
 ## Publications
 
-We kindly recommend to cite [our paper](https://arxiv.org/abs/2208.11865) if you find this library useful:
+We kindly recommend to cite [our paper](https://arxiv.org/abs/2411.17928) if you find this library useful:
 
 ```latex
-@misc{hu2024mapevalunifiedrobustefficient,
+@misc{hu2024mapeval,
       title={MapEval: Towards Unified, Robust and Efficient SLAM Map Evaluation Framework}, 
       author={Xiangcheng Hu and Jin Wu and Mingkai Jia and Hongyu Yan and Yi Jiang and Binqian Jiang and Wei Zhang and Wei He and Ping Tan},
       year={2024},
@@ -232,18 +213,15 @@ We kindly recommend to cite [our paper](https://arxiv.org/abs/2208.11865) if you
       url={https://arxiv.org/abs/2411.17928}, 
 }
 
-
 @ARTICLE{hu2024paloc,
   author={Hu, Xiangcheng and Zheng, Linwei and Wu, Jin and Geng, Ruoyu and Yu, Yang and Wei, Hexiang and Tang, Xiaoyu and Wang, Lujia and Jiao, Jianhao and Liu, Ming},
   journal={IEEE/ASME Transactions on Mechatronics}, 
   title={PALoc: Advancing SLAM Benchmarking With Prior-Assisted 6-DoF Trajectory Generation and Uncertainty Estimation}, 
   year={2024},
-  volume={},
-  number={},
-  pages={1-12},
-  doi={10.1109/TMECH.2024.3362902}
-  }
-
+  volume={29},
+  number={6},
+  pages={4297-4308},
+  doi={10.1109/TMECH.2024.3362902}}
 ```
 
 ## Contributors
